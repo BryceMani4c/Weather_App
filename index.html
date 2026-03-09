@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>Weather</title>
+    <link rel="icon" type="image/x-icon" href="Images/favicon.ico">
+    <link rel="apple-touch-icon" href="Images/apple-touch-icon-iphone60x60.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="Images/apple-touch-icon-ipad-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="Images/apple-touch-icon-iphone-retina-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="Images/apple-touch-icon-ipad-retina-152x152.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark">
+    <div class="col-12 d-flex justify-content-center min-vh-100 align-items-center">
+        <div class="card col-11 col-md-4 col-lg-5" id="divWeather">
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-12">
+                        <h5 class="text-center mb-1">Coordinates</h5>
+                        <hr />
+                        <div class="row">
+                            <div class="col-6">
+                                <h5 class="text text-center mb-1">Latitude</h5>
+                                <h3 class="text-center mb-4" id="txtLatitude"></h3>
+                            </div>
+                            <div class="col-6">
+                                <h5 class="text text-center mb-1">Longitude</h5>
+                                <h3 class="text-center mb-4" id="txtLongitude"></h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <hr />
+                        <h5 class="text text-center mb-1">Current Conditions</h5>
+                        <div class="text-center mb-2">
+                            <img id="imgWeather" src="" alt="Weather Icon" width="80" height="80">
+                        </div>
+                        <h3 class="text-center mb-4" id="lblConditions"></h3>
+                        <hr />
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="text-center mb-1"><img src="Images/temperature.svg" width="24" height="24" alt="Thermometer_Image"></div>
+                                <h6 class="text text-center mb-1">Temperature (°F)</h6>
+                                <h3 class="text-center mb-4"><span id="lblTemperature"></span></h3>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center mb-1"><img src="Images/humidity.svg" width="24" height="24" alt="Droplet_Image"></div>
+                                <h6 class="text text-center mb-1">Humidity (%)</h6>
+                                <h3 class="text-center mb-4"><span id="lblHumidity"></span></h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <h6 class="text">Weather data is courtesy of <a href="https://open-meteo.com">Open-Meteo</a></h6>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        const strBaseUrl = "https://api.open-meteo.com/v1/forecast"
+
+        // weather codes pulled from Weather API
+        const objWeatherCodes = {
+            0:  "Clear Sky",
+            1:  "Mainly Clear",
+            2:  "Partly Cloudy",
+            3:  "Overcast",
+            45: "Fog",
+            48: "Depositing Rime Fog",
+            51: "Light Drizzle",
+            53: "Moderate Drizzle",
+            55: "Heavy Drizzle",
+            56: "Freezing Drizzle: Light Intensity",
+            57: "Freezing Drizzle: Dense Intensity",
+            61: "Light Rain",
+            63: "Moderate Rain",
+            65: "Heavy Rain",
+            66: "Freezing Rain: Light Intensity",
+            67: "Freezing Rain: Heavy Intensity",
+            71: "Light Snow",
+            73: "Moderate Snow",
+            75: "Heavy Snow",
+            77: "Snow Grains",
+            80: "Light Showers",
+            81: "Moderate Showers",
+            82: "Heavy Showers",
+            85: "Snow Showers Slight",
+            86: "Snow Showers Heavy",
+            95: "Thunderstorm",
+            96: "Thunderstorm With Slight Hail",
+            99: "Thunderstorm With Heavy Hail",
+        }
+
+        // gets user's location upon request
+        navigator.geolocation.getCurrentPosition((objPosition) => {
+            const numLat = objPosition.coords.latitude
+            const numLon = objPosition.coords.longitude
+
+            // trims cordinates to be less overbearing on the user
+            document.querySelector('#txtLatitude').textContent = `${numLat.toFixed(4)}`
+            document.querySelector('#txtLongitude').textContent = `${numLon.toFixed(4)}`
+
+            // fetches weather data using user's location
+            fetch(`${strBaseUrl}?latitude=${numLat}&longitude=${numLon}&current=temperature_2m,weather_code,relative_humidity_2m&temperature_unit=fahrenheit&precipitation_unit=inch&timezone=auto`)
+                .then(response => response.json())
+                .then(data => {
+                    // Initalizes variables with weather data pulled from Weather API
+                    let numTemperature = data.current.temperature_2m
+                    let numWeatherCode = data.current.weather_code
+                    let numHumidity = data.current.relative_humidity_2m
+                    let strConditions = objWeatherCodes[numWeatherCode]
+
+                    // Updated HTML elements from initalized variables
+                    document.querySelector('#lblTemperature').textContent = numTemperature
+                    document.querySelector('#lblConditions').textContent = strConditions
+                    document.querySelector('#lblHumidity').textContent = numHumidity
+                    document.querySelector('#imgWeather').src = `Images/${numWeatherCode}.svg` // sets weather icon based on weather code
+                    document.querySelector('#imgWeather').alt = strConditions                  // sets alt text based on weather code
+                })
+        })
+    </script>
+</body>
+</html>
